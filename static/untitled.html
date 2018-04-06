@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+
+	<script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+	<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.4/lodash.min.js"></script>
+	<script src="https://d3js.org/d3-brush.v1.min.js"></script>
+	<script src="https://d3js.org/d3-axis.v1.min.js"></script>
+	<script src="https://d3js.org/d3-color.v1.min.js"></script>
+	<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+	<script src="https://d3js.org/d3-path.v1.min.js"></script>
+	<script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js"></script>
+
+
+</head>
+
+
+<style>
+
+body {
+    font-family: sans-serif;
+}
+
+text {
+    font-family: sans-serif;
+    font-size: 12pt;
+}
+
+
+.axis path,
+.axis line 
+{
+	fill: none;
+	stroke: black;
+	shape-rendering: crispEdges;
+}
+
+div.tooltip {	
+	position: absolute;			
+	text-align: center;			
+	width: 100px;					
+	height: 45px;					
+	padding: 2px;				
+	font: 12px sans-serif;		
+	background: lightsteelblue;	
+	border: 0px;		
+	border-radius: 8px;			
+	pointer-events: none;			
+}
+
+
+div.tooltip-large {	
+	position: absolute;			
+	text-align: center;			
+	width: 250px;					
+	height: 100px;					
+	padding: 2px;				
+	font: 12px sans-serif;		
+	background: lightsteelblue;	
+	border: 0px;		
+	border-radius: 8px;			
+	pointer-events: none;			
+}
+
+.d3-tip {
+	line-height: 1;
+	font-weight: bold;
+	padding: 12px;
+	background: rgba(0, 0, 0, 0.8);
+	color: #fff;
+	border-radius: 2px;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+	box-sizing: border-box;
+	display: inline;
+	font-size: 10px;
+	width: 100%;
+	line-height: 1;
+	color: rgba(0, 0, 0, 0.8);
+	content: "\25BC";
+	position: absolute;
+	text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+	margin: -1px 0 0 0;
+	top: 100%;
+	left: 0;
+}
+
+/*
+Style for search box
+ */
+.selectedStock {
+    background-image: url('/css/searchicon.png'); /* Add a search icon to input */
+    background-position: 10px 12px; /* Position the search icon */
+    background-repeat: no-repeat; /* Do not repeat the icon image */
+    width: 100%; /* Full-width */
+    font-size: 20px; /* Increase font-size */
+    padding: 12px 20px 12px 40px; /* Add some padding */
+    border: 2px solid #ddd; /* Add a grey border */
+    margin-bottom: 12px; /* Add some space below the input */
+}
+
+
+
+
+/* Style for the slider */
+input {
+    vertical-align: middle;
+}
+
+/*
+Brush and zoom style
+ */
+.zoom {
+  cursor: move;
+  fill: none;
+  pointer-events: all;
+}
+
+</style>
+
+
+
+<div class="body">
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+	<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+	<script src="https://d3js.org/d3-time.v1.min.js"></script>
+	<script src="https://d3js.org/d3-time-format.v2.min.js"></script>
+	<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+	<div id='sectorChart'></div>
+	<script type=text/javascript src="{{url_for('static', filename='visual1_stock_by_sector.js')}}"></script>
+
+
+
+
+	<div id="priceVolumeChart">
+	<script type=text/javascript src="{{url_for('static', filename='price_volume_slider.js')}}"></script>
+	<div id='xAxis' name="xAxis" value="xAxis">
+	<div id = 'yAxis' name="yAxis" value="yAxis">
+
+	<div id="priceSlider"></div>
+	<p>Select the maximum quote price:
+		<input type="range" min="0", max="10000", step="1", value="100" id="quotePriceSlider"/>
+		<output id="quotePrice">1.00</output>
+	</p>
+	</div>
+
+
+
+
+
+	
+	<h3>Search your selected stock</h3>
+	<script type=text/javascript src="{{url_for('static', filename='selectStock.js')}}"></script>
+	<!-- <input type="search" id="selectedStock" onkeyup="loadSelectedStock()" placeholder="Search for stock" >
+	<input type="button" onclick="loadSelectedStock()" value="Search"> -->
+
+	<form action="/selectedStock" method="post" id="searchStock">
+	  Stock Symbol: <input type="text" name="symbol" id='inputSymbol'>
+	  <input type="button" onclick="getTicker()" value="Search">
+	</form>
+
+
+	<h3>One year time series for your selected stock</h3>
+	<div id="priceTimeSeries"></div>
+	<form method="post" id="timeSeriesInterval">
+	  Short-term Moving Average Interval: <input type="number" name="ma1" id='inputMa1'>
+	  Long-term Moving Average Interval: <input type="number" name="ma2" id='inputMa2'>
+	  <input type="button" onclick="rePlot()" value="Plot">
+	</form>
+	<p>Your average return rate would be: 
+	<output id='averageReturnYear'>0.0</output> %</p>
+
+	
+
+	<h3>One week time series for your selected stock</h3>
+	<div id="shortTermSeries"></div>
+	<form method="post" id="shortTermTimeSeriesInterval">
+	  Short-term Moving Average Interval: <input type="number" name="shortTermMa1" id='shortTermInputMa1'>
+	  Long-term Moving Average Interval: <input type="number" name="shortTermMa2" id='shortTermInputMa2'>
+	  <input type="button" onclick="rePlotShortTerm()" value="Plot">
+	</form>
+	<p>Your average return rate would be: 
+	<output id='shortTermAverageReturnYear'>0.0</output> %</p>
+
+
+
+
+</div>
