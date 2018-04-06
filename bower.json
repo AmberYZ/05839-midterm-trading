@@ -1,0 +1,22 @@
+{
+  "name": "midterm-website",
+  "homepage": "https://github.com/AmberYZ/05839",
+  "authors": [
+    "<Yuyan Zhang> <yuyanz1@andrew.cmu.edu>"
+  ],
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "3.2.0",
+    "jquery": "2.1.1",
+    "d3": "3.4.11"
+  }
+}
